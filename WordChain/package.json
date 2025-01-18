@@ -1,20 +1,21 @@
 {
   "name": "wordchain",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "description": "",
-  "devDependencies": {
-    "@types/node": "^22.10.6",
-    "eslint": "^9.18.0",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongodb": "^6.12.0",
     "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0"
   }
 }

@@ -2,13 +2,32 @@ import { Router, Request, Response } from "express";
 import { buildGroupedWordsList } from "./wordChain/dataLoader";
 import { wordChainApp } from "./app";
 
-var groupedWordsList = buildGroupedWordsList('dictionaries/TWL06.txt');
+// import { Kafka } from "kafkajs";
+// exports.kafka = new Kafka({
+//     clientId: "wordchain-requests",
+//     brokers: ["kafka1:9092"],
+//   });
+// const producer = exports.kafka.producer();
+
+
+var groupedWordsList = buildGroupedWordsList('./dictionaries/TWL06.txt');
 
 const router = Router();
 
-router.get("/:start/:end", (req: Request, res: Response) => {
+router.get("/:start/:end", async (req: Request, res: Response) => {
     const startWord = req.params.start;
     const endWord = req.params.end;
+
+    // await producer.connect();
+    // await producer.send({
+    //     topic: 'new-chainword-request',
+    //     messages: [{key: startWord + endWord, value: startWord + endWord}],
+    //     headers: {
+    //         'start-word' : startWord,
+    //         'end-word' : endWord
+    //     }
+    // });
+
 
     var result = wordChainApp(startWord, endWord, groupedWordsList);
 

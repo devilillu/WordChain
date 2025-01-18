@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import wordChainRoutes from "./wordChainRoutes";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8088;
 
 app.use(express.json());
 app.use("/chain", wordChainRoutes);

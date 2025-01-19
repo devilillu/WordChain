@@ -1,5 +1,5 @@
 {
-  "name": "wordchain",
+  "name": "wordchainrouter",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -12,13 +12,12 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "express": "^4.21.2",
     "kafkajs": "^2.2.4",
     "rimraf": "^6.0.1",
     "typescript": "^5.7.3"
   },
   "devDependencies": {
-    "@types/kafkajs": "^1.8.2",
-    "@types/rimraf": "^3.0.2",
-    "@types/typescript": "^0.4.29"
+    "@types/express": "^5.0.0"
   }
 }

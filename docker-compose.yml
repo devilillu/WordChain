@@ -1,7 +1,7 @@
 services:
-  api:
+  wordchainrouter:
     build:
-      context: .
+      context: ./WordChainRouter
       target: production
     ports:
       - 8088:8088
@@ -9,6 +9,22 @@ services:
       - "8088"
     depends_on:
       - kafka  
+    environment:
+      KAFKA_REQUESTS_TOPIC: "topic-wordchain-request"
+      KAFKA_ENDPOINT : "kafka:9093"
+      PORT: "8088"
+
+  wordchainworker:
+    build:
+      context: ./WordChain
+      target: production
+    depends_on:
+      - kafka  
+      - wordchainrouter
+    environment:
+      KAFKA_REQUESTS_TOPIC: "topic-wordchain-request"
+      KAFKA_RESULTS_TOPIC: "topic-wordchain-result"
+      KAFKA_ENDPOINT : "kafka:9093"
 
   kafka:
     image: apache/kafka-native

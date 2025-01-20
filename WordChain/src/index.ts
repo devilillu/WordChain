@@ -1,7 +1,7 @@
 import { EachMessagePayload, Kafka } from "kafkajs";
 import { wordChainApp } from "./app";
 import { buildGroupedWordsList } from "./wordChain/dataLoader";
-import { WordChainOutput } from "./wordChain/io";
+import { WordChainEntry, WordChainRequest } from "./common";
 
 const kafkaEndPoint : string = process.env.KAFKA_ENDPOINT || "localhost:9092";
 const reqTopic : string = process.env.KAFKA_REQUESTS_TOPIC || "topic-wordchain-request";
@@ -25,7 +25,7 @@ const run = async () => {
     await consumer.connect();
     await producer.connect();
 
-    await consumer.subscribe({ topic: reqTopic, fromBeginning: true });
+    await consumer.subscribe({ topic: reqTopic, fromBeginning: false });
     await consumer.run({eachMessage: handleMessage});
 }
 
@@ -33,22 +33,40 @@ const handleMessage = async ({ topic, partition, message }: EachMessagePayload) 
     msgNumber++;
     console.log(`processing ${msgNumber}, ${message.key}, ${message.value} ${message.timestamp}`);
 
-    var result: WordChainOutput | string;
-    if (message.value != null)
+    if (message.value == null)
     {
-        var startWord :string = message.value[0].toString();
-        var endWord :string = message.value[1].toString();
-        result = wordChainApp(startWord, endWord, groupedWordsList);   
-        
-        await producer.send({
-            topic: resTopic,
-            messages: [{key: startWord + "_" + endWord, value: resultToMessageObject(result)}]
-        });
-    }        
+        console.log(`Cannot proceed with null object ${message}`);
+        return;
+    }
+
+    const request = JSON.parse(message.value.toString()) as WordChainRequest;
+    var startWord :string = request.start;
+    var endWord :string = request.end;
+    var result = wordChainApp(startWord, endWord, groupedWordsList);   
+    
+    var name = `${startWord}_${endWord}`;
+    var value = new WordChainEntry(); 
+    value.name = name;
+    value.start = startWord;
+    value.end = endWord;
+    if (typeof result !== "string")
+    {
+        value.runtime = result.Runtime;
+        value.solutions = result.Results.map((res) => res.prettyPrint());
+        value.shortests = result.shortestSolutions().map((res) => res.prettyPrint());
+        value.algorithm = "v2";
+        value.error = result.Error;
+    }
+    else
+        value.error = result;
+
+    await producer.send({
+        topic: resTopic,
+        messages: [{key: name, value: JSON.stringify(value)}]
+    });
 
     console.log(`done with ${message}`);
 }
-
 
 run().then(() => {
     console.log("run done");
@@ -56,13 +74,3 @@ run().then(() => {
 {
     console.error(e);
 })
-
-function resultToMessageObject(result: string | WordChainOutput) : string {
-    if (typeof result === "string")
-        return result;
-    else if (result == null)
-        return "unknown status";
-    else
-        return result.shortestSolutions().map(sol => sol.prettyPrint()).join('\r\n');
-}
-

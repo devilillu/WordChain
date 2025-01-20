@@ -18,10 +18,9 @@ export function wordChain(input: WordChainInput, print: boolean): WordChainOutpu
         
         solutions.forEach((node) => { output.addResult(node) });
 
-        if (performance.now() - lastDebugTime > 3000) {
-            console.clear();
-            console.log(`${input.ioPool.length} total words working with..`);
+        if (process.env.KAFKA_ENDPOINT && performance.now() - lastDebugTime > 3000) {
             showMemory();
+            console.log(`${input.ioPool.length} # of words working with..`);
             console.log(`Items left to expands and explore : ${tree.ItemsToExpand.length}`);
             console.log(`# of solutions found : ${output.Results.length}`);
             lastDebugTime = performance.now();
@@ -42,7 +41,7 @@ export function wordChain(input: WordChainInput, print: boolean): WordChainOutpu
             console.log(result.prettyPrint());
     }
 
-    console.log(`Call to find solutions took ${performance.now() - startTime} milliseconds`)
-
+    output.Runtime = performance.now() - startTime;
+    console.log(`Call to find solutions took ${output.Runtime} milliseconds`)
     return output;
 }

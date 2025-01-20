@@ -62,6 +62,8 @@ export type WordChainInput = {
 export class WordChainOutput {
     Input: WordChainInput;
     Results: WordChainSolution[] = [];
+    Error: string | undefined;
+    Runtime: number = 0;
 
     constructor(input: WordChainInput) {
         this.Input = input;

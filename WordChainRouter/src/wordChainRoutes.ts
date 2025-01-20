@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Kafka } from "kafkajs";
+import { createNewRequest, isRequestInDB, WordChainRequest } from "./common";
 
 const kafkaEndPoint : string = process.env.KAFKA_ENDPOINT || "localhost:9092";
 const reqTopic : string = process.env.KAFKA_REQUESTS_TOPIC || "topic-wordchain-request";
@@ -16,20 +17,28 @@ router.get("/:start/:end", async (req: Request, res: Response) => {
     const startWord = req.params.start;
     const endWord = req.params.end;
 
-    //for now forward anything as new
-    if (false)//haveResult(startWord, endWord))
+    var entry = await isRequestInDB(startWord, endWord);
+    if (entry == null) //never requested
     {
-        res.json("result known");
-    }
-    else
-    {
+        entry = await createNewRequest(startWord, endWord);
+
+        var name = startWord + "_" + endWord;
+        var value = new WordChainRequest(name, startWord, endWord, Date.now());
         await producer.connect();
         await producer.send({
             topic: reqTopic,
-            messages: [{key: startWord + "_" + endWord, value: JSON.stringify([startWord, endWord])}],
+            messages: [{key: name, value: JSON.stringify(value)}],
         });
 
-        res.json("now in queue");
+        res.json("new request in queue, hit again later");
+    }
+    else if (entry.shortests == null) //
+    {
+        res.json("not finished yet, check again later");
+    }
+    else if (entry.shortests != null)
+    {
+        res.json(entry);
     }
 });
 

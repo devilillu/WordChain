@@ -62,6 +62,7 @@
 
 # mongodb
 # https://www.mongodb.com/resources/products/compatibilities/using-typescript-with-mongodb-tutorial
+# https://hub.docker.com/_/mongo
 
 # kafka how to
 https://github.com/maddymanu/TypeScript-KafkaJS-Example/blob/master/src/producer.ts

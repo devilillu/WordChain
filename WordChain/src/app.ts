@@ -10,12 +10,12 @@ export function wordChainApp(startWord: string, endWord: string, dictionary: Num
         var output = wordChain(buildInput(userInput, dictionary), true);
         return output;
     } catch (e) {
+        console.error(e);
         if (typeof e === "string")
             return e;
         else if (e instanceof Error)
-            return e.message
+            return e.message;
         else
-            return "Error on word chain...";
+            return "unknown exception";
     }
 }
-

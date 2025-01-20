@@ -8,6 +8,7 @@ export class WordChainRequest {
 
 export class WordChainEntry {
     constructor(
+        public status?: RequestStatus,
         public name?: string, 
         public start?: string,
         public end?: string,
@@ -17,4 +18,10 @@ export class WordChainEntry {
         public algorithm?: string,
         public error?: string,
         public id?: string) {}
+}
+
+export enum RequestStatus {
+    Queued,
+    Running,
+    Complete
 }

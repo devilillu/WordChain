@@ -2,6 +2,7 @@ import * as mongoDB from "mongodb";
 
 export class WordChainEntry {
     constructor(
+        public status?: RequestStatus,
         public name?: string, 
         public start?: string,
         public end?: string,
@@ -11,6 +12,12 @@ export class WordChainEntry {
         public algorithm?: string,
         public error?: string,
         public id?: string) {}
+}
+
+export enum RequestStatus {
+    Queued,
+    Running,
+    Complete
 }
 
 export async function connectToDatabase() : Promise<mongoDB.Collection> {
@@ -25,8 +32,8 @@ export async function connectToDatabase() : Promise<mongoDB.Collection> {
  export async function update(updatedRecord: WordChainEntry, collection: mongoDB.Collection) : Promise<boolean> {
      try {
         const query = {  "start": updatedRecord.start, "end": updatedRecord.end };     
-         const result = await collection.updateOne(query, { $set: updatedRecord });
-         return result ? true : false;
+        const result = await collection.updateOne(query, { $set: updatedRecord });
+        return result ? true : false;
      } catch (error) {
          console.error(error);
          return false;

@@ -1,4 +1,5 @@
-# WordChainService
+# WordChain
+git clone https://github.com/devilillu/WordChain.git .
 
 1) Run docker compose, found in root folder of provided repo
 # docker-compose up --build -d

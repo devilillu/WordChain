@@ -9,7 +9,7 @@ const resTopic : string = process.env.KAFKA_RESULTS_TOPIC || "topic-wordchain-re
 
 router.get("/init", async (req: Request, res: Response) => {
     const kafka = new Kafka({
-        clientId: "wordchain-admin",
+        clientId: "wordchainAdmin",
         brokers: [kafkaEndPoint],
     });
 

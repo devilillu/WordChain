@@ -1,30 +1,26 @@
 import { EachMessagePayload, Kafka } from "kafkajs";
 import { wordChainApp } from "./app";
 import { buildGroupedWordsList } from "./wordChain/dataLoader";
-import { WordChainEntry, WordChainRequest } from "./common";
+import { RequestStatus, WordChainEntry, WordChainRequest } from "./common";
 
 const kafkaEndPoint : string = process.env.KAFKA_ENDPOINT || "localhost:9092";
 const reqTopic : string = process.env.KAFKA_REQUESTS_TOPIC || "topic-wordchain-request";
 const resTopic : string = process.env.KAFKA_RESULTS_TOPIC || "topic-wordchain-result";
-const kafkaReq = new Kafka({
-    clientId: "wordchain-requests",
-    brokers: [kafkaEndPoint],
-});
-const kafkaRes = new Kafka({
-    clientId: "wordchain-results",
+const kafka = new Kafka({
+    clientId: "wordchain-processor",
     brokers: [kafkaEndPoint],
 });
 
-const consumer = kafkaReq.consumer({ groupId: 'requests-consumer-group' })
-const producer = kafkaRes.producer();
+const consumer = kafka.consumer({ groupId: 'requestsConsumerGroup' })
+const producer = kafka.producer( );
 let msgNumber = 0
 
 var groupedWordsList = buildGroupedWordsList('./dictionaries/TWL06.txt');
 
 const run = async () => {
-    await consumer.connect();
     await producer.connect();
 
+    await consumer.connect();
     await consumer.subscribe({ topic: reqTopic, fromBeginning: false });
     await consumer.run({eachMessage: handleMessage});
 }
@@ -35,20 +31,17 @@ const handleMessage = async ({ topic, partition, message }: EachMessagePayload) 
 
     if (message.value == null)
     {
-        console.log(`Cannot proceed with null object ${message}`);
+        console.warn(`Cannot proceed with null message/value`);
         return;
     }
 
     const request = JSON.parse(message.value.toString()) as WordChainRequest;
-    var startWord :string = request.start;
-    var endWord :string = request.end;
-    var result = wordChainApp(startWord, endWord, groupedWordsList);   
+    var result = wordChainApp(request.start, request.end, groupedWordsList);   
     
-    var name = `${startWord}_${endWord}`;
     var value = new WordChainEntry(); 
-    value.name = name;
-    value.start = startWord;
-    value.end = endWord;
+    value.name = request.name;
+    value.start = request.start;
+    value.end = request.end;
     if (typeof result !== "string")
     {
         value.runtime = result.Runtime;
@@ -60,9 +53,10 @@ const handleMessage = async ({ topic, partition, message }: EachMessagePayload) 
     else
         value.error = result;
 
+    value.status = RequestStatus.Complete;
     await producer.send({
         topic: resTopic,
-        messages: [{key: name, value: JSON.stringify(value)}]
+        messages: [{key: request.name, value: JSON.stringify(value)}]
     });
 
     console.log(`done with ${message}`);

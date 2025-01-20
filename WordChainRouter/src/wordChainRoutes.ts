@@ -1,12 +1,11 @@
 import { Router, Request, Response } from "express";
 import { Kafka } from "kafkajs";
-import { createNewRequest, isRequestInDB, WordChainRequest } from "./common";
+import { createNewRequest, isRequestInDB, RequestStatus, WordChainRequest } from "./common";
 
 const kafkaEndPoint : string = process.env.KAFKA_ENDPOINT || "localhost:9092";
 const reqTopic : string = process.env.KAFKA_REQUESTS_TOPIC || "topic-wordchain-request";
-
 const kafka = new Kafka({
-    clientId: "wordchain-requests",
+    clientId: "wordchainRequestsProd",
     brokers: [kafkaEndPoint],
 });
 
@@ -30,16 +29,30 @@ router.get("/:start/:end", async (req: Request, res: Response) => {
             messages: [{key: name, value: JSON.stringify(value)}],
         });
 
-        res.json("new request in queue, hit again later");
+        res.json("new request added, refresh or hit again for result");
     }
-    else if (entry.shortests == null) //
+    else if (entry.status != RequestStatus.Complete) //
     {
-        res.json("not finished yet, check again later");
+        res.json({
+            "message" : "not finished yet, please check again later",
+            "entry" : `${JSON.stringify(entry)}`           
+        });
     }
-    else if (entry.shortests != null)
+    else if (entry.status == RequestStatus.Complete)
     {
-        res.json(entry);
+        res.json({
+            "message" : "Complete",
+            "entry" : `${JSON.stringify(entry, replacer)}`           
+        });
     }
 });
+
+function replacer(key: string, value : string)
+{
+    if (key=="solutions") 
+        return undefined;
+    else 
+        return value;
+}
 
 export default router;

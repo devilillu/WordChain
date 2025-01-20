@@ -11,6 +11,7 @@ export class WordChainRequest {
 
 export class WordChainEntry {
     constructor(
+        public status?: RequestStatus,
         public name?: string, 
         public start?: string,
         public end?: string,
@@ -20,6 +21,12 @@ export class WordChainEntry {
         public algorithm?: string,
         public error?: string,
         public id?: string) {}
+}
+
+export enum RequestStatus {
+    Queued,
+    Running,//TODO use o distinguish queued from actually running
+    Complete
 }
 
 export async function connectToDatabase() : Promise<mongoDB.Collection> {
@@ -43,6 +50,7 @@ export async function createNewRequest(startWord: string, endWord: string): Prom
     newEntry.name = `${startWord}_${endWord}`;
     newEntry.start = startWord;
     newEntry.end = endWord;
+    newEntry.status = RequestStatus.Queued;
     
     var newId = await post(newEntry, collection);
     

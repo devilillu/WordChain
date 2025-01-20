@@ -16,6 +16,7 @@ const run = async () => {
 }
 
 let msgNumber = 0
+
 const handleMessage = async ({ topic, partition, message }: EachMessagePayload) => {
     msgNumber++;
     console.log(`writing result to DB: ${msgNumber}, ${message.key}, ${message.value} ${message.timestamp}`);
@@ -28,7 +29,7 @@ const handleMessage = async ({ topic, partition, message }: EachMessagePayload) 
 
     const request = JSON.parse(message.value.toString()) as WordChainEntry;
     await update(request, await connectToDatabase());
-    console.log(`done writing result in DB: ${request}`);
+    console.log(`done writing result in DB: ${JSON.stringify(request)}`);
 }
 
 run().then(() => {

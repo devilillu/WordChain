@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { Kafka } from "kafkajs";
+import { Kafka, Partitioners } from "kafkajs";
 import { createNewRequest, isRequestInDB, RequestStatus, WordChainRequest } from "./common";
 
 const kafkaEndPoint : string = process.env.KAFKA_ENDPOINT || "localhost:9092";
@@ -10,7 +10,7 @@ const kafka = new Kafka({
 });
 
 const router = Router();
-const producer = kafka.producer();
+const producer = kafka.producer({ createPartitioner: Partitioners.DefaultPartitioner });
 
 router.get("/:start/:end", async (req: Request, res: Response) => {
     const startWord = req.params.start;

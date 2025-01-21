@@ -7,8 +7,8 @@ export class Tree {
     static Version = "v3";
 
     Root: TreeNode;
-    NodesLookup: StringDictionary<TreeNode> = {}
     ItemsToExpand: TreeNode[];
+    private _usedNodesLookup: StringDictionary<TreeNode> = {}
     private _shortestSolutionDepth: number;
 
     constructor(root: TreeNode) {
@@ -24,14 +24,14 @@ export class Tree {
     popAndProcessNext(input: WordChainInput): TreeNode[] {
         var curNode = this.ItemsToExpand.shift();
 
-        if (curNode === undefined || curNode.Depth + 1 > this._shortestSolutionDepth)
+        if (curNode === undefined)// || curNode.Depth + 1 > this._shortestSolutionDepth)
             return [];
 
         var curNodeWord = curNode.Word;
         var newChildrenDepth = curNode.Depth + 1;
 
         var children = input.ioPool.filter((avail) => 
-            this.NodesLookup[avail] == undefined && exactlyOneDiff(curNodeWord, avail));
+            this._usedNodesLookup[avail] == undefined && exactlyOneDiff(curNodeWord, avail));
         
         curNode.Children.push(...
             children.map(ch => 
@@ -51,9 +51,10 @@ export class Tree {
         var solutions: TreeNode[] = [];
         for (var newNode of nodes) {
             this.ItemsToExpand.push(newNode);
-            this.NodesLookup[newNode.Word] = newNode;
-            if (newNode.isSolution)
+            if (newNode.isSolution) //provide solution
                 solutions.push(newNode);
+            else //don't add in used nodes lookup, so similar depth solution can be found
+                this._usedNodesLookup[newNode.Word] = newNode;
         }
         return solutions;
     }

@@ -27,8 +27,9 @@ export function wordChain(input: WordChainInput, print: boolean): WordChainOutpu
             console.log(`Time elapsed ${Math.round(performance.now() - startTime) / 1000} seconds`);
         }
 
-        if (solutions.length > 0)
-            tree.MarkCurrentDepthToFinish(solutions[0].Depth);
+        if (solutions.length > 0) //exit on first
+            break;
+            //tree.MarkCurrentDepthToFinish(solutions[0].Depth);
     }
 
     if (print) {

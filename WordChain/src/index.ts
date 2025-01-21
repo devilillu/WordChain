@@ -2,6 +2,7 @@ import { EachMessagePayload, Kafka, Partitioners } from "kafkajs";
 import { wordChainApp } from "./app";
 import { buildGroupedWordsList } from "./wordChain/dataLoader";
 import { RequestStatus, WordChainEntry, WordChainRequest } from "./common";
+import { Tree } from "./wordChain/Tree";
 
 const kafkaEndPoint : string = process.env.KAFKA_ENDPOINT || "localhost:9092";
 const reqTopic : string = process.env.KAFKA_REQUESTS_TOPIC || "topic-wordchain-request";
@@ -59,7 +60,7 @@ const handleMessage = async ({ topic, partition, message }: EachMessagePayload) 
     {
         value.runtime = result.Runtime;
         value.shortests = result.shortestSolutions().map((res) => res.prettyPrint());
-        value.algorithm = "v2";
+        value.algorithm = Tree.Version;
         value.error = result.Error;
         //Causes kafka message queue to fail due to size, can use for debug
         //value.solutions = result.Results.map((res) => res.prettyPrint());

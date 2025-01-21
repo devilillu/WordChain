@@ -16,7 +16,7 @@ export function wordChain(input: WordChainInput, print: boolean): WordChainOutpu
     while (tree.hasItems) {
         var solutions = tree.popAndProcessNext(input);
         
-        solutions.forEach((node) => { output.addResult(node) });
+        solutions.forEach((node: TreeNode) => { output.addResult(node) });
 
         if (process.env.KAFKA_ENDPOINT && performance.now() - lastDebugTime > 3000) {
             showMemory();
@@ -26,6 +26,9 @@ export function wordChain(input: WordChainInput, print: boolean): WordChainOutpu
             lastDebugTime = performance.now();
             console.log(`Time elapsed ${Math.round(performance.now() - startTime) / 1000} seconds`);
         }
+
+        if (solutions.length > 0)
+            tree.MarkCurrentDepthToFinish(solutions[0].Depth);
     }
 
     if (print) {

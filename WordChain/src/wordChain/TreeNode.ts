@@ -21,10 +21,6 @@ export class TreeNode {
         return this.CostToEnd == 0;
     }
 
-    sortChildren(): void {
-        this.Children.sort((a, b) => a.CostToEnd < b.CostToEnd ? 0 : -1);
-    }
-
     path(): StringDictionary<string> {
         if (this._path == undefined) {
             var path: StringDictionary<string> = {};

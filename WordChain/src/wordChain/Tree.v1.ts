@@ -3,7 +3,9 @@ import { StringDictionary, anyParentOrSelf } from "./algorithm";
 import { WordChainInput } from "./io";
 import { TreeNode } from "./TreeNode";
 
-export class TreeV0 {
+export class Tree {
+    static Version = "v1";
+
     Root: TreeNode;
     ItemsToExpand: TreeNode[];
     NodesLookup: StringDictionary<TreeNode> = {}

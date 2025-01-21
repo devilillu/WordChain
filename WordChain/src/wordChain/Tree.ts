@@ -1,16 +1,20 @@
 import { exactlyOneDiff } from "../tools/stringTools";
-import { StringDictionary, anyParentOrSelf } from "./algorithm";
+import { StringDictionary } from "./algorithm";
 import { WordChainInput } from "./io";
 import { TreeNode } from "./TreeNode";
 
 export class Tree {
+    static Version = "v3";
+
     Root: TreeNode;
-    ItemsToExpand: TreeNode[];
     NodesLookup: StringDictionary<TreeNode> = {}
+    ItemsToExpand: TreeNode[];
+    private _shortestSolutionDepth: number;
 
     constructor(root: TreeNode) {
         this.Root = root;
         this.ItemsToExpand = [root];
+        this._shortestSolutionDepth = Number.POSITIVE_INFINITY;
     }
 
     get hasItems(): boolean {
@@ -18,31 +22,29 @@ export class Tree {
     }
 
     popAndProcessNext(input: WordChainInput): TreeNode[] {
-        var curNode = this.ItemsToExpand.pop();
+        var curNode = this.ItemsToExpand.shift();
 
-        if (curNode == undefined || this.AnyParentAbandoned(curNode))
+        if (curNode === undefined || curNode.Depth + 1 > this._shortestSolutionDepth)
             return [];
 
-        for (var ioPoolWord of input.ioPool) {
-            if (exactlyOneDiff(curNode.Word, ioPoolWord)) {
-                var existingNode: TreeNode = this.NodesLookup[ioPoolWord];
-                if (existingNode == undefined) //not in the tree, so add
-                    Tree.addChildToNode(curNode, ioPoolWord, input.ioPoolEndWordDiffCharCache[ioPoolWord]);
-                else if (existingNode.Depth > curNode.Depth + 1) { //worst
-                    //this.replace(ioPoolWord);
-                    //this.abandon(ioPoolWord);
-                    existingNode.IsAbandoned = true;
-                    Tree.addChildToNode(curNode, ioPoolWord, input.ioPoolEndWordDiffCharCache[ioPoolWord]);
-                }
-                else { //exists in better so don't expand
-                }
-            }
-        }
+        var curNodeWord = curNode.Word;
+        var newChildrenDepth = curNode.Depth + 1;
 
-        //curNode.sortChildren();
+        var children = input.ioPool.filter((avail) => 
+            this.NodesLookup[avail] == undefined && exactlyOneDiff(curNodeWord, avail));
+        
+        curNode.Children.push(...
+            children.map(ch => 
+                new TreeNode(curNode as TreeNode, newChildrenDepth, ch, input.ioPoolEndWordDiffCharCache[ch])
+            ).sort((a, b) => a.CostToEnd > b.CostToEnd ? 0 : -1)
+        );
 
-        curNode.IsExpanded = true;
         return this.onChildrenAdded(curNode.Children);
+    }
+
+    MarkCurrentDepthToFinish(depth: number) {
+        if (this._shortestSolutionDepth === Number.POSITIVE_INFINITY)
+            this._shortestSolutionDepth = depth;
     }
 
     private onChildrenAdded(nodes: TreeNode[]): TreeNode[] {
@@ -54,37 +56,5 @@ export class Tree {
                 solutions.push(newNode);
         }
         return solutions;
-    }
-
-    private static addChildToNode(parentNode: TreeNode, newNodeWord: string, cost: number): void {
-        const newNode = new TreeNode(parentNode, parentNode.Depth + 1, newNodeWord, cost);
-        parentNode.Children.push(newNode);
-    }
-
-    AnyParentAbandoned(node: TreeNode | null): boolean {
-        while (node != null) {
-            if (node.IsAbandoned)
-                return true;
-            node = node.Parent;
-        }
-
-        return false;
-    }
-
-    private replace(newNodeWord: string): void {
-        var debug: TreeNode[] = [];
-        for (var item of this.ItemsToExpand) {
-            if (anyParentOrSelf(item, newNodeWord))
-                debug.push(item);
-        }
-
-        this.ItemsToExpand = this.ItemsToExpand.filter((tn) => !anyParentOrSelf(tn, newNodeWord));
-    }
-
-    private abandon(newNodeWord: string): void {
-        for (var item of this.ItemsToExpand) {
-            if (!item.IsAbandoned && anyParentOrSelf(item, newNodeWord))
-                item.IsAbandoned = true;
-        }
     }
 }
